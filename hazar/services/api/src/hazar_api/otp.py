@@ -70,7 +70,8 @@ class OtpService:
         k = self._keys(phone)
         ip_key = f"otp:window:ip:{keyed_hash(self._secret, client_ip)}"
         await self._hit_window(ip_key, self._s.otp_max_requests_per_ip_per_hour)
-        if not await self._redis.set(k.cooldown, "1", nx=True, ex=self._s.otp_resend_cooldown_seconds):
+        cooldown = self._s.otp_resend_cooldown_seconds  # 0 disables the cooldown (tests only)
+        if cooldown > 0 and not await self._redis.set(k.cooldown, "1", nx=True, ex=cooldown):
             raise RateLimitedError(await self._redis.ttl(k.cooldown))
         await self._hit_window(k.phone_window, self._s.otp_max_requests_per_phone_per_hour)
 

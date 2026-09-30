@@ -27,11 +27,13 @@ class Settings(BaseSettings):
     session_cookie_name: str = "hazar_session"
     session_ttl_seconds: int = 60 * 60 * 24 * 7
     cookie_secure: bool = True
+    # Number of reverse proxies in front of the API whose X-Forwarded-For entries we trust.
+    trusted_proxy_count: int = 0
 
-    otp_length: int = 6
-    otp_ttl_seconds: int = 300
-    otp_max_attempts: int = 5
-    otp_resend_cooldown_seconds: int = 60
+    otp_length: int = Field(default=6, ge=4, le=8)
+    otp_ttl_seconds: int = Field(default=300, ge=1)
+    otp_max_attempts: int = Field(default=5, ge=1)
+    otp_resend_cooldown_seconds: int = Field(default=60, ge=0)
     otp_max_requests_per_phone_per_hour: int = 5
     otp_max_requests_per_ip_per_hour: int = 20
 
@@ -49,6 +51,8 @@ class Settings(BaseSettings):
                 raise RuntimeError("HAZAR_APP_SECRET must be at least 32 characters in production")
             if not self.master_key_b64.get_secret_value():
                 raise RuntimeError("HAZAR_MASTER_KEY_B64 must be set in production")
+            if self.otp_resend_cooldown_seconds < 30:
+                raise RuntimeError("HAZAR_OTP_RESEND_COOLDOWN_SECONDS must be at least 30 in production")
             if not self.cookie_secure:
                 raise RuntimeError("HAZAR_COOKIE_SECURE must be true in production")
 
