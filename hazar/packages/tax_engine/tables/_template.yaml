@@ -1,0 +1,16 @@
+# Template for a tax-year table. Copy to {year}.yaml.
+#
+# Fill values ONLY from the Israel Tax Authority's official reference table (לוח עזר) for that year.
+# Never from memory. Set `verified: true` on an entry only after the tax advisor has reviewed it.
+# The engine refuses to produce a final (non-estimate) result while any entry is unverified.
+#
+# The concrete keys (brackets, credit points, caps, localities, ...) are defined in Sprint 3.
+year: null
+tables_version: null
+source: null          # official document / URL the values were taken from
+reviewed_by: null     # advisor who verified the file
+values:
+  example_entry:
+    value: null
+    verified: false
+    todo: "Replace with the real entries in Sprint 3"
