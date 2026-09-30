@@ -1,0 +1,13 @@
+[project]
+name = "hazar-tax-engine"
+version = "0.1.0"
+description = "Deterministic Israeli income tax engine. Pure Python: no I/O beyond reading its own tables, no network."
+requires-python = ">=3.12,<3.13"
+dependencies = ["pydantic>=2.8", "PyYAML>=6.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hazar_tax_engine"]
