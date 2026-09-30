@@ -1,0 +1,9 @@
+{
+  "name": "hazar",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "web": "pnpm --filter web"
+  }
+}

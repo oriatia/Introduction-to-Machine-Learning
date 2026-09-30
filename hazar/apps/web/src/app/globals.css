@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+ * Hazar design tokens. RTL-first: components use logical utilities only
+ * (ms/me, ps/pe, start/end, text-start), never left/right.
+ * Colour pairs meet WCAG 2.1 AA contrast (IS 5568).
+ */
+@theme {
+  --font-sans: var(--font-heebo), system-ui, sans-serif;
+
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e; /* 5.5:1 on white */
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+
+  --color-ink: #1f2937;         /* 14.7:1 on white */
+  --color-ink-muted: #4b5563;   /* 7.6:1 on white */
+  --color-surface: #ffffff;
+  --color-canvas: #f6f7f9;
+  --color-line: #d1d5db;
+  --color-danger: #b91c1c;      /* 6.5:1 on white */
+  --color-danger-bg: #fef2f2;
+  --color-focus: #2563eb;
+
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+  --radius-bubble: 1.25rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/* Visible focus for keyboard users on every interactive element. */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
