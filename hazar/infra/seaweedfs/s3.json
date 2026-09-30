@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "hazar-local",
+      "credentials": [{ "accessKey": "hazar-local", "secretKey": "hazar-local-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

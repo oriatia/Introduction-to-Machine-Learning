@@ -6,7 +6,7 @@ import pytest
 from alembic import command
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from hazar_api import audit
 from hazar_api.models import AuditLog, Role, User
@@ -63,7 +63,7 @@ async def test_deleting_user_keeps_audit_rows(db: AsyncSession) -> None:
     assert row.action == "auth.login"
 
 
-async def test_migrations_round_trip(database_url: str, db: AsyncSession) -> None:
+async def test_migrations_round_trip(database_url: str, engine: AsyncEngine, db: AsyncSession) -> None:
     await db.close()
     cfg = alembic_config(database_url)
     # Alembic's env.py runs its own event loop, so run it in a thread.
@@ -72,4 +72,7 @@ async def test_migrations_round_trip(database_url: str, db: AsyncSession) -> Non
     tables = await db.scalars(
         text("SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename")
     )
-    assert {"users", "audit_log", "alembic_version"} <= set(tables)
+    assert {"users", "audit_log", "user_keys", "alembic_version"} <= set(tables)
+    await db.close()
+    # Recreated enum types get new OIDs; drop pooled connections that cached the old ones.
+    await engine.dispose()

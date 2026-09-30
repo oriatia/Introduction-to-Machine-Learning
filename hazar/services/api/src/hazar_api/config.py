@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from functools import lru_cache
 from typing import Literal
 
@@ -64,6 +65,18 @@ class Settings(BaseSettings):
                 raise RuntimeError("HAZAR_APP_SECRET is not set")
             secret = "insecure-development-secret-do-not-use"  # noqa: S105
         return secret.encode()
+
+    @property
+    def master_key(self) -> bytes:
+        raw = self.master_key_b64.get_secret_value()
+        if not raw:
+            if self.env == "production":
+                raise RuntimeError("HAZAR_MASTER_KEY_B64 is not set")
+            return b"\x00" * 32  # development/test only
+        key = base64.b64decode(raw)
+        if len(key) != 32:
+            raise RuntimeError("HAZAR_MASTER_KEY_B64 must decode to 32 bytes")
+        return key
 
     @property
     def dev_tools_enabled(self) -> bool:

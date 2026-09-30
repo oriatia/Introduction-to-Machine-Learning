@@ -5,6 +5,8 @@ import os
 from collections.abc import AsyncIterator
 from pathlib import Path
 
+import fakeredis
+import httpx
 import pytest
 from alembic import command
 from alembic.config import Config
@@ -12,13 +14,16 @@ from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from hazar_api.config import Settings
 from hazar_api.db import make_engine
+from hazar_api.main import create_app
+from hazar_api.storage import InMemoryObjectStorage
 
 API_DIR = Path(__file__).resolve().parents[1]
 TEST_DATABASE_URL = os.environ.get(
     "HAZAR_TEST_DATABASE_URL", "postgresql+asyncpg://hazar:hazar@localhost:5432/hazar_test"
 )
-TABLES = ("users", "audit_log")
+TABLES = ("users", "audit_log", "user_keys")
 
 
 def alembic_config(url: str) -> Config:
@@ -72,3 +77,22 @@ async def sessionmaker(engine: AsyncEngine) -> AsyncIterator[async_sessionmaker[
 async def db(sessionmaker: async_sessionmaker[AsyncSession]) -> AsyncIterator[AsyncSession]:
     async with sessionmaker() as session:
         yield session
+
+
+def make_client(
+    sessionmaker: async_sessionmaker[AsyncSession], settings: Settings | None = None
+) -> httpx.AsyncClient:
+    settings = settings or Settings(env="test", cookie_secure=False, otp_resend_cooldown_seconds=0)
+    app = create_app(
+        settings,
+        redis=fakeredis.FakeAsyncRedis(),
+        sessionmaker=sessionmaker,
+        storage=InMemoryObjectStorage(),
+    )
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
+
+
+@pytest.fixture
+async def client(sessionmaker: async_sessionmaker[AsyncSession]) -> AsyncIterator[httpx.AsyncClient]:
+    async with make_client(sessionmaker) as c:
+        yield c

@@ -9,11 +9,14 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from hazar_api.config import Settings, get_settings
+from hazar_api.crypto import LocalKeyWrapper
 from hazar_api.db import make_engine, make_sessionmaker
 from hazar_api.otp import OtpService
-from hazar_api.routers import advisor, auth, dev
+from hazar_api.routers import advisor, auth, dev, files
 from hazar_api.sessions import SessionStore
 from hazar_api.sms import make_sms_provider
+from hazar_api.storage import ObjectStorage, S3ObjectStorage
+from hazar_api.vault import DocumentVault
 
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
@@ -23,6 +26,7 @@ def create_app(
     *,
     redis: Redis | None = None,
     sessionmaker: async_sessionmaker[AsyncSession] | None = None,
+    storage: ObjectStorage | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
 
@@ -32,6 +36,8 @@ def create_app(
         if sessionmaker is None:
             engine = make_engine(settings.database_url)
             app.state.sessionmaker = make_sessionmaker(engine)
+        if isinstance(app.state.storage, S3ObjectStorage):
+            await app.state.storage.ensure_bucket()
         try:
             yield
         finally:
@@ -56,6 +62,16 @@ def create_app(
     app.state.sessions = SessionStore(r, settings.session_ttl_seconds)
     if sessionmaker is not None:
         app.state.sessionmaker = sessionmaker
+    app.state.storage = storage or S3ObjectStorage(
+        settings.s3_bucket,
+        endpoint_url=settings.s3_endpoint_url,
+        access_key=settings.s3_access_key.get_secret_value(),
+        secret_key=settings.s3_secret_key.get_secret_value(),
+        region=settings.s3_region,
+    )
+    app.state.vault = DocumentVault(
+        app.state.storage, LocalKeyWrapper(settings.master_key), settings.secret_bytes
+    )
 
     @app.middleware("http")
     async def json_only_for_writes(
@@ -81,6 +97,7 @@ def create_app(
 
     app.include_router(auth.router)
     app.include_router(advisor.router)
+    app.include_router(files.router)
     if settings.dev_tools_enabled:
         app.include_router(dev.router)
     return app

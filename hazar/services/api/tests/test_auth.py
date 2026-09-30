@@ -1,28 +1,18 @@
 from __future__ import annotations
 
 import re
-from collections.abc import AsyncIterator
 
-import fakeredis
 import httpx
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from hazar_api.config import Settings
-from hazar_api.main import create_app
 from hazar_api.models import AuditLog, Role, User
 
+from .conftest import make_client
+
 PHONE = "050-123-4567"
-
-
-@pytest.fixture
-async def client(sessionmaker: async_sessionmaker[AsyncSession]) -> AsyncIterator[httpx.AsyncClient]:
-    settings = Settings(env="test", cookie_secure=False, otp_resend_cooldown_seconds=0)
-    app = create_app(settings, redis=fakeredis.FakeAsyncRedis(), sessionmaker=sessionmaker)
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
-        yield c
 
 
 async def login(client: httpx.AsyncClient, phone: str = PHONE) -> httpx.Response:
@@ -98,12 +88,7 @@ async def test_invalid_phone(client: httpx.AsyncClient) -> None:
 
 
 async def test_rate_limited_returns_429(sessionmaker: async_sessionmaker[AsyncSession]) -> None:
-    app = create_app(
-        Settings(env="test", otp_resend_cooldown_seconds=60),
-        redis=fakeredis.FakeAsyncRedis(),
-        sessionmaker=sessionmaker,
-    )
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
+    async with make_client(sessionmaker, Settings(env="test", otp_resend_cooldown_seconds=60)) as c:
         assert (await c.post("/api/auth/request-otp", json={"phone": PHONE})).status_code == 202
         r = await c.post("/api/auth/request-otp", json={"phone": PHONE})
     assert r.status_code == 429
@@ -139,9 +124,8 @@ async def test_writes_require_json(client: httpx.AsyncClient) -> None:
 
 
 async def test_dev_router_absent_in_production(sessionmaker: async_sessionmaker[AsyncSession]) -> None:
-    settings = Settings(env="production", app_secret="x" * 40, master_key_b64="k")
-    app = create_app(settings, redis=fakeredis.FakeAsyncRedis(), sessionmaker=sessionmaker)
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
+    settings = Settings(env="production", app_secret="x" * 40, master_key_b64="A" * 43 + "=")
+    async with make_client(sessionmaker, settings) as c:
         r = await c.post("/api/dev/last-sms", json={"phone": PHONE})
         assert r.status_code == 404
         assert (await c.get("/api/docs")).status_code == 404

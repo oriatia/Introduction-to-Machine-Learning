@@ -65,7 +65,7 @@ def _phone(raw: str) -> str:
     try:
         return normalize_il_mobile(raw)
     except InvalidPhoneError:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="invalid_phone") from None
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="invalid_phone") from None
 
 
 def _otp_error(err: OtpError) -> JSONResponse:

@@ -23,5 +23,5 @@ async def last_sms(body: PhoneIn, request: Request) -> dict[str, str | None]:
     try:
         phone = normalize_il_mobile(body.phone)
     except InvalidPhoneError:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="invalid_phone") from None
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="invalid_phone") from None
     return {"text": await sms.last_message(phone)}
