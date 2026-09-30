@@ -53,6 +53,15 @@ class Settings(BaseSettings):
                 raise RuntimeError("HAZAR_COOKIE_SECURE must be true in production")
 
     @property
+    def secret_bytes(self) -> bytes:
+        secret = self.app_secret.get_secret_value()
+        if not secret:
+            if self.env == "production":
+                raise RuntimeError("HAZAR_APP_SECRET is not set")
+            secret = "insecure-development-secret-do-not-use"  # noqa: S105
+        return secret.encode()
+
+    @property
     def dev_tools_enabled(self) -> bool:
         return self.env in ("development", "test") and self.sms_provider == "mock"
 
