@@ -29,6 +29,11 @@ async function signIn(page: Page, phone: string) {
   await expect(page).toHaveURL(/\/home/);
 }
 
+/** Our error alerts. (Next.js also renders an empty role="alert" route announcer.) */
+function alert(page: Page, text: string) {
+  return page.getByRole("alert").filter({ hasText: text });
+}
+
 async function expectNoA11yViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(results.violations.map((v) => v.id)).toEqual([]);
@@ -79,7 +84,7 @@ test("a wrong code shows an error and keeps the user signed out", async ({ page 
   const real = await readOtp(page.request, phone);
   await page.getByLabel(he.auth.codeLabel).fill(real === "000000" ? "111111" : "000000");
   await page.getByRole("button", { name: he.auth.verify, exact: true }).click();
-  await expect(page.getByRole("alert")).toHaveText(he.auth.errors.invalid_code);
+  await expect(alert(page, he.auth.errors.invalid_code)).toBeVisible();
   await page.goto("/home");
   await expect(page).toHaveURL(/\/login$/);
 });
@@ -88,7 +93,7 @@ test("an invalid phone number is rejected", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel(he.auth.phoneLabel).fill("03-1234567");
   await page.getByRole("button", { name: he.auth.sendCode }).click();
-  await expect(page.getByRole("alert")).toHaveText(he.auth.errors.invalid_phone);
+  await expect(alert(page, he.auth.errors.invalid_phone)).toBeVisible();
 });
 
 test("the seeded advisor reaches the back office", async ({ page }, testInfo) => {

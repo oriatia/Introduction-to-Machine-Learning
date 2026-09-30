@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
@@ -105,4 +106,7 @@ def create_app(
 
 def app_factory() -> FastAPI:
     """Entry point for uvicorn --factory, so importing this module has no side effects."""
-    return create_app()
+    settings = get_settings()
+    # App logs never contain PII (phones are masked). In development the mock SMS text (with OTP) is logged.
+    logging.basicConfig(level=logging.INFO if settings.env != "production" else logging.WARNING)
+    return create_app(settings)

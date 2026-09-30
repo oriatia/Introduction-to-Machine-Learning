@@ -10,6 +10,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@fontsource-variable/heebo':
+        specifier: ^5.3.0
+        version: 5.3.0
       next:
         specifier: 16.3.8
         version: 16.3.8(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -284,6 +287,9 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@fontsource-variable/heebo@5.3.0':
+    resolution: {integrity: sha512-gaCKIbnx83+Za844O2dn4XYoAitS2jjBSj08bELHfCIL5gKMBDWl82oWte2CEBrnXwNMVJNd3ojZqFOd9+mCFg==}
 
   '@formatjs/fast-memoize@3.1.7':
     resolution: {integrity: sha512-zXfhLpvA6T7+efdt9JLbBwZ00tT7NsBMDVnDu8rpHeNNv8KfRZAMo2gkG0k9lK/Nzc//3kJ9pImsfuJxk3KhUA==}
@@ -3088,6 +3094,8 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.16.0': {}
+
+  '@fontsource-variable/heebo@5.3.0': {}
 
   '@formatjs/fast-memoize@3.1.7': {}
 

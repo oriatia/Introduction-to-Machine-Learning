@@ -6,7 +6,7 @@
  * Colour pairs meet WCAG 2.1 AA contrast (IS 5568).
  */
 @theme {
-  --font-sans: var(--font-heebo), system-ui, sans-serif;
+  --font-sans: "Heebo Variable", system-ui, sans-serif;
 
   --color-brand-50: #f0fdfa;
   --color-brand-100: #ccfbf1;
