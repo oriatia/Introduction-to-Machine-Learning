@@ -11,13 +11,16 @@ import json
 import struct
 import zlib
 from dataclasses import dataclass
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from hazar_api.config import Settings
 
 CONFIDENCE_THRESHOLD = 0.9
+
+ImageType = Literal["image/jpeg", "image/png", "image/webp"]
+IMAGE_TYPES: frozenset[str] = frozenset(("image/jpeg", "image/png", "image/webp"))
 
 FieldKind = Literal["year", "text", "digits", "amount", "months", "decimal"]
 
@@ -173,10 +176,10 @@ class ClaudeExtractor:
 
     name = "claude"
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, client: Any = None) -> None:
         import anthropic
 
-        self._client = anthropic.AsyncAnthropic()
+        self._client = client or anthropic.AsyncAnthropic()
         self._model = settings.anthropic_model
 
     async def extract(self, data: bytes, content_type: str, doc_type: str) -> ExtractionResult:
@@ -184,37 +187,54 @@ class ClaudeExtractor:
 
         if doc_type not in FIELDS_BY_DOC_TYPE:
             return empty_result(doc_type)
+        from anthropic.types.beta import (
+            BetaContentBlockParam,
+            BetaMessageParam,
+            BetaOutputConfigParam,
+            BetaTextBlock,
+        )
+
         encoded = base64.standard_b64encode(data).decode()
+        source_block: BetaContentBlockParam
         if content_type == "application/pdf":
-            source_block: dict[str, object] = {
+            source_block = {
                 "type": "document",
                 "source": {"type": "base64", "media_type": "application/pdf", "data": encoded},
             }
         else:
+            if content_type not in IMAGE_TYPES:
+                raise ExtractionError("unsupported_file")
+            media_type = cast(ImageType, content_type)
             source_block = {
                 "type": "image",
-                "source": {"type": "base64", "media_type": content_type, "data": encoded},
+                "source": {"type": "base64", "media_type": media_type, "data": encoded},
             }
+        messages: list[BetaMessageParam] = [
+            {
+                "role": "user",
+                "content": [
+                    source_block,
+                    {"type": "text", "text": f"Extract the fields of this {doc_type} document."},
+                ],
+            }
+        ]
+        response_model = _response_model(doc_type)
+        output_config: BetaOutputConfigParam = {
+            # Opus 5.5 defaults to medium effort; transcription accuracy is worth high.
+            "effort": "high",
+            "format": {"type": "json_schema", "schema": anthropic.transform_schema(response_model)},
+        }
         try:
-            response = await self._client.beta.messages.parse(
+            # create() + our own validation (not parse()): parse() validates before we can see a refusal.
+            response = await self._client.beta.messages.create(
                 model=self._model,
                 max_tokens=16000,
                 system=SYSTEM_PROMPT,
-                # Opus 5.5 defaults to medium effort; transcription accuracy is worth high.
-                output_config={"effort": "high"},
+                output_config=output_config,
                 # Refusal fallbacks (routes by refusal category, no model list to maintain).
                 betas=["server-side-fallback-2026-07-01"],
                 fallbacks="default",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            source_block,  # type: ignore[list-item]
-                            {"type": "text", "text": f"Extract the fields of this {doc_type} document."},
-                        ],
-                    }
-                ],
-                output_format=_response_model(doc_type),
+                messages=messages,
             )
         except anthropic.RateLimitError:
             raise ExtractionError("rate_limited") from None
@@ -227,9 +247,13 @@ class ClaudeExtractor:
 
         if response.stop_reason == "refusal":
             raise ExtractionError("refused")
-        if response.stop_reason == "max_tokens" or response.parsed_output is None:
+        if response.stop_reason == "max_tokens":
             raise ExtractionError("incomplete")
-        parsed = response.parsed_output.model_dump()
+        text = next((b.text for b in response.content if isinstance(b, BetaTextBlock)), "")
+        try:
+            parsed = response_model.model_validate_json(text).model_dump()
+        except ValueError:
+            raise ExtractionError("invalid_output") from None
         return ExtractionResult(fields={k: ExtractedField.model_validate(v) for k, v in parsed.items()})
 
 
