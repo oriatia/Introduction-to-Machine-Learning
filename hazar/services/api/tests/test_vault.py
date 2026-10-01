@@ -14,8 +14,7 @@ from hazar_api.models import AuditLog, User, UserKey
 from hazar_api.storage import InMemoryObjectStorage, S3ObjectStorage
 from hazar_api.vault import DocumentVault, InvalidFileTokenError
 
-from .conftest import make_client
-from .test_auth import login
+from .conftest import login, make_client
 
 KEK = bytes(range(32))
 SECRET = b"s" * 32

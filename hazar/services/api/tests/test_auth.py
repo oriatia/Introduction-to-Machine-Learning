@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 import httpx
 import pytest
 from sqlalchemy import select
@@ -10,17 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from hazar_api.config import Settings
 from hazar_api.models import AuditLog, Role, User
 
-from .conftest import make_client
-
-PHONE = "050-123-4567"
-
-
-async def login(client: httpx.AsyncClient, phone: str = PHONE) -> httpx.Response:
-    r = await client.post("/api/auth/request-otp", json={"phone": phone})
-    assert r.status_code == 202, r.text
-    sms = (await client.post("/api/dev/last-sms", json={"phone": phone})).json()["text"]
-    code = re.search(r"\b(\d{6})\b", sms).group(1)  # type: ignore[union-attr]
-    return await client.post("/api/auth/verify-otp", json={"phone": phone, "code": code})
+from .conftest import PHONE, login, make_client
 
 
 async def actions(db: AsyncSession) -> list[str]:

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from collections.abc import AsyncIterator
+from datetime import date
 from pathlib import Path
 
 import fakeredis
@@ -23,7 +25,10 @@ API_DIR = Path(__file__).resolve().parents[1]
 TEST_DATABASE_URL = os.environ.get(
     "HAZAR_TEST_DATABASE_URL", "postgresql+asyncpg://hazar:hazar@localhost:5432/hazar_test"
 )
-TABLES = ("users", "audit_log", "user_keys")
+# Fixed "today" for API tests: refund window is 2020..2025.
+TODAY = date(2026, 10, 1)
+PHONE = "050-123-4567"
+TABLES = ("users", "audit_log", "user_keys", "profiles", "life_events", "questionnaire_answers")
 
 
 def alembic_config(url: str) -> Config:
@@ -89,6 +94,7 @@ def make_client(
         sessionmaker=sessionmaker,
         storage=InMemoryObjectStorage(),
     )
+    app.state.today = lambda: TODAY
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
 
 
@@ -96,3 +102,30 @@ def make_client(
 async def client(sessionmaker: async_sessionmaker[AsyncSession]) -> AsyncIterator[httpx.AsyncClient]:
     async with make_client(sessionmaker) as c:
         yield c
+
+
+async def login(client: httpx.AsyncClient, phone: str = PHONE) -> httpx.Response:
+    r = await client.post("/api/auth/request-otp", json={"phone": phone})
+    assert r.status_code == 202, r.text
+    sms = (await client.post("/api/dev/last-sms", json={"phone": phone})).json()["text"]
+    code = re.search(r"\b(\d{6})\b", sms).group(1)  # type: ignore[union-attr]
+    return await client.post("/api/auth/verify-otp", json={"phone": phone, "code": code})
+
+
+# A complete questionnaire with every optional benefit answered 'no'.
+ALL_NO: dict[str, object] = {
+    "resident": True,
+    "sex": "female",
+    "marital_status": "married",
+    "has_children": False,
+    "has_degree": False,
+    "discharged": False,
+    "aliyah": False,
+    "disability": False,
+    "multiple_employers": False,
+    "partial_year": False,
+    "donations": False,
+    "life_insurance": False,
+    "pension_self": False,
+    "localities": [{"name": "חיפה", "from_year": 2015, "to_year": None}],
+}

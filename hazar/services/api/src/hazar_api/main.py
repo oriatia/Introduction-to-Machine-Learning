@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
@@ -13,13 +15,14 @@ from hazar_api.config import Settings, get_settings
 from hazar_api.crypto import LocalKeyWrapper
 from hazar_api.db import make_engine, make_sessionmaker
 from hazar_api.otp import OtpService
-from hazar_api.routers import advisor, auth, dev, files
+from hazar_api.routers import advisor, auth, dev, files, questionnaire
 from hazar_api.sessions import SessionStore
 from hazar_api.sms import make_sms_provider
 from hazar_api.storage import ObjectStorage, S3ObjectStorage
 from hazar_api.vault import DocumentVault
 
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+ISRAEL_TZ = ZoneInfo("Asia/Jerusalem")
 
 
 def create_app(
@@ -57,6 +60,7 @@ def create_app(
     r = redis or Redis.from_url(settings.redis_url)
     sms = make_sms_provider(settings.sms_provider, r)
     app.state.settings = settings
+    app.state.today = lambda: datetime.now(ISRAEL_TZ).date()
     app.state.redis = r
     app.state.sms = sms
     app.state.otp = OtpService(r, sms, settings)
@@ -99,6 +103,7 @@ def create_app(
     app.include_router(auth.router)
     app.include_router(advisor.router)
     app.include_router(files.router)
+    app.include_router(questionnaire.router)
     if settings.dev_tools_enabled:
         app.include_router(dev.router)
     return app

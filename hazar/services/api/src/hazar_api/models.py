@@ -2,10 +2,22 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, Identity, LargeBinary, String, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Identity,
+    Index,
+    LargeBinary,
+    String,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -77,5 +89,77 @@ class UserKey(Base):
     wrapped_dek: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     key_wrapper_id: Mapped[str] = mapped_column(String(64), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class Profile(Base):
+    """Personal status. Questionnaire-sourced fields are re-derived from QuestionnaireAnswer (ADR 0003)."""
+
+    __tablename__ = "profiles"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    resident: Mapped[bool | None] = mapped_column(Boolean)
+    sex: Mapped[str | None] = mapped_column(String(16))
+    marital_status: Mapped[str | None] = mapped_column(String(16))
+    single_parent: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    disability: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class LifeEventType(enum.StrEnum):
+    CHILD_BIRTH = "child_birth"
+    DEGREE_COMPLETED = "degree_completed"
+    DISCHARGE = "discharge"
+    ALIYAH = "aliyah"
+    LOCALITY = "locality"
+    MULTIPLE_EMPLOYERS = "multiple_employers"
+    PARTIAL_YEAR = "partial_year"
+    DONATION = "donation"
+    LIFE_INSURANCE = "life_insurance"
+    PENSION_SELF = "pension_self"
+
+
+class LifeEventSource(enum.StrEnum):
+    QUESTIONNAIRE = "questionnaire"
+    DOCUMENT = "document"
+    ADVISOR = "advisor"
+
+
+class LifeEvent(Base):
+    """A dated fact about the user's life. Tax-year facts are derived from these."""
+
+    __tablename__ = "life_events"
+    __table_args__ = (Index("ix_life_events_user_source", "user_id", "source"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
+    date_from: Mapped[date] = mapped_column(Date, nullable=False)
+    date_to: Mapped[date | None] = mapped_column(Date)
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict, server_default="{}")
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class QuestionnaireAnswer(Base):
+    __tablename__ = "questionnaire_answers"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    question_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    answered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
