@@ -217,12 +217,13 @@ class EstimateOut(ScreeningResult):
     engine_version: str
 
 
-@router.get("/estimate", response_model=EstimateOut)
-async def estimate(user: CurrentUser, db: DbSession, today: Today) -> EstimateOut:
-    """Which benefits may apply, per year. Relevance only, no amounts until tables are verified (ADR 0003)."""
+async def compute_estimate(
+    db: AsyncSession, user: User, today: date, *, audit_run: bool = True
+) -> ScreeningResult | None:
+    """Screen the user's facts. None while the questionnaire is incomplete."""
     rows = await _answers(db, user)
     if next_question({q: r.value for q, r in rows.items()}) is not None:
-        raise HTTPException(status.HTTP_409_CONFLICT, detail="questionnaire_incomplete")
+        return None
     profile = await db.get(Profile, user.id)
     events = [
         EventSpec(LifeEventType(e.type), e.date_from, e.date_to, e.data) for e in await _events(db, user)
@@ -236,10 +237,20 @@ async def estimate(user: CurrentUser, db: DbSession, today: Today) -> EstimateOu
         events=events,
     )
     result = screen(facts, today)
-    await audit.record(
-        db,
-        "estimate.run",
-        actor_id=user.id,
-        details={"findings": len(result.findings), "engine": ENGINE_VERSION},
-    )
+    if audit_run:
+        await audit.record(
+            db,
+            "estimate.run",
+            actor_id=user.id,
+            details={"findings": len(result.findings), "engine": ENGINE_VERSION},
+        )
+    return result
+
+
+@router.get("/estimate", response_model=EstimateOut)
+async def estimate(user: CurrentUser, db: DbSession, today: Today) -> EstimateOut:
+    """Which benefits may apply, per year. Relevance only, no amounts until tables are verified (ADR 0003)."""
+    result = await compute_estimate(db, user, today)
+    if result is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, detail="questionnaire_incomplete")
     return EstimateOut(**result.model_dump(), engine_version=ENGINE_VERSION)

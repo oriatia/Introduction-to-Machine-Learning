@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from hazar_api.config import Settings
 from hazar_api.db import make_engine
+from hazar_api.documents import RecordingQueue
 from hazar_api.main import create_app
 from hazar_api.storage import InMemoryObjectStorage
 
@@ -28,7 +29,16 @@ TEST_DATABASE_URL = os.environ.get(
 # Fixed "today" for API tests: refund window is 2020..2025.
 TODAY = date(2026, 10, 1)
 PHONE = "050-123-4567"
-TABLES = ("users", "audit_log", "user_keys", "profiles", "life_events", "questionnaire_answers")
+TABLES = (
+    "users",
+    "audit_log",
+    "user_keys",
+    "profiles",
+    "life_events",
+    "questionnaire_answers",
+    "documents",
+    "income_sources",
+)
 
 
 def alembic_config(url: str) -> Config:
@@ -93,6 +103,7 @@ def make_client(
         redis=fakeredis.FakeAsyncRedis(),
         sessionmaker=sessionmaker,
         storage=InMemoryObjectStorage(),
+        jobs=RecordingQueue(),
     )
     app.state.today = lambda: TODAY
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")

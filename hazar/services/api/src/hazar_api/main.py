@@ -14,8 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from hazar_api.config import Settings, get_settings
 from hazar_api.crypto import LocalKeyWrapper
 from hazar_api.db import make_engine, make_sessionmaker
+from hazar_api.documents import ArqQueue, JobQueue
 from hazar_api.otp import OtpService
-from hazar_api.routers import advisor, auth, dev, files, questionnaire
+from hazar_api.routers import advisor, auth, dev, documents, files, questionnaire
 from hazar_api.sessions import SessionStore
 from hazar_api.sms import make_sms_provider
 from hazar_api.storage import ObjectStorage, S3ObjectStorage
@@ -31,6 +32,7 @@ def create_app(
     redis: Redis | None = None,
     sessionmaker: async_sessionmaker[AsyncSession] | None = None,
     storage: ObjectStorage | None = None,
+    jobs: JobQueue | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
 
@@ -42,6 +44,13 @@ def create_app(
             app.state.sessionmaker = make_sessionmaker(engine)
         if isinstance(app.state.storage, S3ObjectStorage):
             await app.state.storage.ensure_bucket()
+        arq_pool = None
+        if jobs is None:
+            from arq import create_pool
+            from arq.connections import RedisSettings
+
+            arq_pool = await create_pool(RedisSettings.from_dsn(settings.redis_url))
+            app.state.jobs = ArqQueue(arq_pool)
         try:
             yield
         finally:
@@ -49,6 +58,8 @@ def create_app(
                 await engine.dispose()
             if redis is None:
                 await app.state.redis.aclose()
+            if arq_pool is not None:
+                await arq_pool.aclose()
 
     app = FastAPI(
         title="Hazar API",
@@ -74,6 +85,8 @@ def create_app(
         secret_key=settings.s3_secret_key.get_secret_value(),
         region=settings.s3_region,
     )
+    if jobs is not None:
+        app.state.jobs = jobs
     app.state.vault = DocumentVault(
         app.state.storage, LocalKeyWrapper(settings.master_key), settings.secret_bytes
     )
@@ -85,7 +98,11 @@ def create_app(
         # CSRF defense in depth (with SameSite=Lax): cross-site forms can't send application/json.
         if request.method in UNSAFE_METHODS and request.url.path.startswith("/api/"):
             content_type = request.headers.get("content-type", "")
-            if not content_type.startswith("application/json"):
+            # The only multipart endpoint; it requires its own custom header instead (ADR 0004 §2).
+            is_upload = request.url.path == "/api/documents" and content_type.startswith(
+                "multipart/form-data"
+            )
+            if not is_upload and not content_type.startswith("application/json"):
                 return JSONResponse({"error": "json_required"}, status_code=415)
         response = await call_next(request)
         response.headers.setdefault("Cache-Control", "no-store")
@@ -104,6 +121,7 @@ def create_app(
     app.include_router(advisor.router)
     app.include_router(files.router)
     app.include_router(questionnaire.router)
+    app.include_router(documents.router)
     if settings.dev_tools_enabled:
         app.include_router(dev.router)
     return app

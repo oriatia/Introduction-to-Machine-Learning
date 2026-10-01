@@ -46,6 +46,12 @@ class Settings(BaseSettings):
 
     file_url_ttl_seconds: int = Field(default=120, ge=10, le=900)
 
+    max_upload_bytes: int = Field(default=10 * 1024 * 1024, ge=1024)
+    # Document extraction (ADR 0004). "claude" also requires allow_images_to_llm (open privacy decision).
+    extraction_provider: Literal["mock", "claude"] = "mock"
+    allow_images_to_llm: bool = False
+    anthropic_model: str = "claude-opus-5-5"
+
     def require_secrets(self) -> None:
         if self.env == "production":
             if len(self.app_secret.get_secret_value()) < 32:
@@ -78,6 +84,13 @@ class Settings(BaseSettings):
             raise RuntimeError("HAZAR_MASTER_KEY_B64 must decode to 32 bytes")
         return key
 
+    def require_extraction_allowed(self) -> None:
+        if self.extraction_provider == "claude" and not self.allow_images_to_llm:
+            raise RuntimeError(
+                "HAZAR_EXTRACTION_PROVIDER=claude needs HAZAR_ALLOW_IMAGES_TO_LLM=true "
+                "(open privacy decision, ADR 0004 §4)"
+            )
+
     @property
     def dev_tools_enabled(self) -> bool:
         return self.env in ("development", "test") and self.sms_provider == "mock"
@@ -87,4 +100,5 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     settings = Settings()
     settings.require_secrets()
+    settings.require_extraction_allowed()
     return settings

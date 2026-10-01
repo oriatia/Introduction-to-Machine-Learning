@@ -163,3 +163,62 @@ class QuestionnaireAnswer(Base):
     answered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+
+class DocumentStatus(enum.StrEnum):
+    UPLOADED = "uploaded"
+    EXTRACTING = "extracting"
+    NEEDS_REVIEW = "needs_review"
+    CONFIRMED = "confirmed"
+    FAILED = "failed"
+
+
+class Document(Base):
+    """An uploaded file. The bytes live encrypted in object storage (DocumentVault); this row is metadata."""
+
+    __tablename__ = "documents"
+    __table_args__ = (Index("ix_documents_user_created", "user_id", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
+    tax_year: Mapped[int | None] = mapped_column()
+    object_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default=DocumentStatus.UPLOADED.value)
+    extractor: Mapped[str | None] = mapped_column(String(32))
+    # {"fields": {name: {"value": str|None, "confidence": float}}} — model output, never used unconfirmed.
+    extraction: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # User-confirmed values, the only ones used downstream.
+    confirmed: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class IncomeSource(Base):
+    """One employer in one tax year, from a confirmed Form 106. Input for the tax engine."""
+
+    __tablename__ = "income_sources"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    tax_year: Mapped[int] = mapped_column(nullable=False)
+    employer_name: Mapped[str | None] = mapped_column(String(120))
+    employer_file_number: Mapped[str | None] = mapped_column(String(20))
+    # Confirmed Form 106 values (integers in agorot-free shekels as printed), keyed by semantic field name.
+    values: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
