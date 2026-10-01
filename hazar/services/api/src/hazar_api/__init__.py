@@ -1,0 +1,1 @@
+"""Hazar API service."""

@@ -1,0 +1,301 @@
+{
+  "app": {
+    "name": "Hazar",
+    "shortName": "Hazar",
+    "description": "בודקים אם מגיע לך החזר מס, מכינים את הבקשה, ויועץ מס מוסמך מגיש אותה בשבילך."
+  },
+  "common": {
+    "loading": "טוען…",
+    "skipToContent": "דילוג לתוכן הראשי",
+    "back": "חזרה"
+  },
+  "landing": {
+    "title": "אולי מחכה לך כסף ממס הכנסה",
+    "subtitle": "עונים על כמה שאלות, מעלים מסמכים, ומקבלים הערכה של ההחזר תוך דקות. יועץ מס מוסמך בודק ומגיש.",
+    "cta": "מתחילים בדיקה",
+    "login": "כבר נרשמת? כניסה"
+  },
+  "auth": {
+    "title": "כניסה והרשמה",
+    "steps": {
+      "phone": "מספר טלפון",
+      "code": "קוד אימות"
+    },
+    "stepper": "התקדמות בכניסה",
+    "stepOf": "שלב {current} מתוך {total}",
+    "phoneTitle": "מה מספר הנייד שלך?",
+    "phoneLabel": "מספר טלפון נייד",
+    "phoneHint": "נשלח אליך קוד חד־פעמי ב-SMS. אותו מספר משמש גם להרשמה וגם לכניסה.",
+    "sendCode": "שליחת קוד",
+    "codeTitle": "הזנת קוד אימות",
+    "codeLabel": "קוד אימות",
+    "codeHint": "שלחנו קוד למספר {phone}",
+    "verify": "כניסה",
+    "resend": "שליחת קוד חדש",
+    "resendIn": "אפשר לבקש קוד חדש בעוד {seconds} שניות",
+    "changePhone": "שינוי מספר טלפון",
+    "codeSent": "הקוד נשלח",
+    "errors": {
+      "invalid_phone": "המספר לא נראה כמו מספר נייד ישראלי. נסו למשל 050-1234567.",
+      "invalid_code": "הקוד שגוי או שפג תוקפו.",
+      "too_many_attempts": "יותר מדי ניסיונות. בקשו קוד חדש.",
+      "rate_limited": "ביקשת יותר מדי קודים. אפשר לנסות שוב בעוד {seconds} שניות.",
+      "generic": "משהו השתבש. נסו שוב בעוד רגע."
+    }
+  },
+  "home": {
+    "title": "האזור האישי",
+    "welcomeNew": "נרשמת בהצלחה. ברוך הבא ל-Hazar!",
+    "welcomeBack": "שמחים לראות אותך שוב.",
+    "signedInAs": "מחובר עם המספר {phone}",
+    "logout": "יציאה",
+    "advisorLink": "למשרד היועץ",
+    "startQuestionnaire": "מתחילים את השאלון",
+    "continueQuestionnaire": "ממשיכים את השאלון",
+    "viewEstimate": "להערכה הראשונית",
+    "viewTimeline": "ציר הזמן שלי",
+    "viewDocuments": "המסמכים שלי"
+  },
+  "advisor": {
+    "title": "משרד היועץ",
+    "queueTitle": "תיקים ממתינים",
+    "empty": "אין כרגע תיקים בתור.",
+    "forbiddenTitle": "אין הרשאה",
+    "forbiddenBody": "הדף הזה מיועד ליועצי מס בלבד.",
+    "backHome": "חזרה לאזור האישי"
+  },
+  "design": {
+    "title": "מערכת עיצוב",
+    "buttons": "כפתורים",
+    "primary": "פעולה ראשית",
+    "secondary": "פעולה משנית",
+    "ghost": "פעולה שקטה",
+    "loadingButton": "שולח…",
+    "cards": "כרטיסים",
+    "cardTitle": "שנת מס לדוגמה",
+    "cardBody": "כרטיס עם כותרת ותוכן. הסכומים יגיעו ממנוע החישוב.",
+    "chat": "בועות צ'אט",
+    "botMessage": "היי! אשאל כמה שאלות קצרות כדי לבדוק אם מגיע לך החזר.",
+    "userMessage": "בשמחה, בוא נתחיל.",
+    "botLabel": "Hazar",
+    "userLabel": "את/ה",
+    "stepper": "סרגל שלבים",
+    "stepperLabel": "שלבי התהליך",
+    "stepQuestionnaire": "שאלון",
+    "stepDocuments": "מסמכים",
+    "stepEstimate": "הערכה",
+    "stepSign": "חתימה",
+    "fields": "שדות",
+    "fieldLabel": "שדה לדוגמה",
+    "fieldHint": "טקסט עזרה",
+    "fieldError": "הודעת שגיאה לדוגמה"
+  },
+  "flow": {
+    "label": "שלבי התהליך",
+    "questionnaire": "שאלון",
+    "estimate": "הערכה ראשונית",
+    "documents": "מסמכים",
+    "sign": "חתימה"
+  },
+  "questionnaire": {
+    "title": "שאלון קצר",
+    "intro": "אשאל כמה שאלות קצרות על השנים האחרונות. אפשר לחזור אחורה בכל שלב.",
+    "botLabel": "Hazar",
+    "userLabel": "את/ה",
+    "progress": "ענית על {answered} שאלות",
+    "yes": "כן",
+    "no": "לא",
+    "submit": "אישור",
+    "addAnother": "הוספת שורה",
+    "remove": "הסרה",
+    "undo": "חזרה לשאלה הקודמת",
+    "doneTitle": "סיימנו! תודה.",
+    "doneBody": "עכשיו אפשר לראות אילו הטבות אולי מגיעות לך.",
+    "toEstimate": "להערכה הראשונית",
+    "toTimeline": "לציר הזמן שלי",
+    "untilToday": "היום",
+    "localityName": "שם היישוב",
+    "fromYear": "משנה",
+    "toYear": "עד שנה (ריק = עד היום)",
+    "dateLabel": "תאריך",
+    "yearLabel": "שנה",
+    "errors": {
+      "invalid_answer": "התשובה לא תקינה. בדקו את הפרטים ונסו שוב.",
+      "unknown_question": "השאלה כבר לא רלוונטית. מרעננים…",
+      "generic": "משהו השתבש. נסו שוב בעוד רגע."
+    },
+    "questions": {
+      "resident": "היית תושב/ת ישראל בשש השנים האחרונות?",
+      "sex": "מה המגדר שלך לצורכי מס?",
+      "marital_status": "מה המצב המשפחתי שלך היום?",
+      "has_children": "יש לך ילדים?",
+      "children_birth_dates": "מה תאריכי הלידה של הילדים?",
+      "single_parent": "גידלת את הילדים כהורה יחיד?",
+      "has_degree": "סיימת תואר אקדמי?",
+      "degree_years": "באיזו שנה סיימת כל תואר?",
+      "discharged": "סיימת שירות צבאי סדיר או שירות לאומי?",
+      "discharge_date": "מה תאריך השחרור?",
+      "aliyah": "עלית לארץ או חזרת אחרי תקופה ארוכה בחו״ל?",
+      "aliyah_date": "מתי עלית או חזרת?",
+      "disability": "יש לך או לבן משפחה קרוב נכות מוכרת?",
+      "multiple_employers": "היו שנים שבהן עבדת אצל יותר ממעסיק אחד במקביל?",
+      "multiple_employer_years": "באילו שנים?",
+      "partial_year": "היו שנים שבהן לא עבדת את כל השנה?",
+      "partial_years": "באילו שנים?",
+      "donations": "תרמת למוסדות או לעמותות?",
+      "donation_years": "באילו שנים?",
+      "life_insurance": "שילמת באופן פרטי על ביטוח חיים?",
+      "life_insurance_years": "באילו שנים?",
+      "pension_self": "הפקדת לפנסיה באופן עצמאי, לא דרך המעסיק?",
+      "pension_self_years": "באילו שנים?",
+      "localities": "באילו יישובים גרת בשש השנים האחרונות?"
+    },
+    "options": {
+      "sex": {
+        "female": "אישה",
+        "male": "גבר"
+      },
+      "marital_status": {
+        "single": "רווק/ה",
+        "married": "נשוי/אה",
+        "divorced": "גרוש/ה",
+        "widowed": "אלמן/ה",
+        "separated": "פרוד/ה"
+      }
+    },
+    "period": "{from} עד {to}",
+    "localityAnswer": "{name} ({period})"
+  },
+  "estimate": {
+    "title": "הערכה ראשונית",
+    "headline": "ייתכן שמגיע לך החזר מס",
+    "summary": "מצאנו {count, plural, one {הטבה אחת} other {# הטבות}} שכדאי לבדוק בשנות המס {years}.",
+    "noAmounts": "עדיין אין כאן סכומים. נחשב אותם רק אחרי שנקבל את המסמכים, לפי לוחות המס הרשמיים, ויועץ מס יבדוק.",
+    "emptyTitle": "לא מצאנו כרגע הטבות לבדיקה",
+    "emptyBody": "זה לא אומר שלא מגיע לך החזר. אחרי העלאת טופס 106 נבדוק שוב, כולל מס שנוכה ביתר.",
+    "years": "שנים: {years}",
+    "why": "למה?",
+    "legalRefPending": "ההפניה לסעיף בפקודת מס הכנסה תתווסף אחרי בדיקה של יועץ המס.",
+    "documentsNeeded": "מסמכים שנצטרך",
+    "documents": {
+      "form_106": "טופס 106 מכל מעסיק",
+      "form_867": "טופס 867 מהבנק",
+      "donation_receipt": "קבלות על תרומות",
+      "insurance": "אישור שנתי מחברת הביטוח",
+      "pension": "אישור שנתי מקופת הפנסיה",
+      "other": "מסמך תומך (למשל תעודה או אישור)"
+    },
+    "editAnswers": "עריכת התשובות",
+    "toTimeline": "ציר הזמן שלי",
+    "toDocuments": "להעלאת המסמכים"
+  },
+  "timeline": {
+    "title": "ציר הזמן שלי",
+    "intro": "אלה הפרטים שאספנו מהתשובות שלך. מהם נגזרות שנות המס.",
+    "empty": "עדיין אין אירועים. מלאו את השאלון כדי לבנות את ציר הזמן.",
+    "profileTitle": "פרטים אישיים",
+    "resident": "תושבות ישראל",
+    "residentYes": "תושב/ת ישראל",
+    "residentNo": "לא תושב/ת ישראל",
+    "eventsTitle": "אירועים",
+    "untilToday": "היום",
+    "types": {
+      "child_birth": "לידת ילד/ה",
+      "degree_completed": "סיום תואר",
+      "discharge": "שחרור משירות",
+      "aliyah": "עלייה / חזרה לארץ",
+      "locality": "מגורים ב{name}",
+      "multiple_employers": "כמה מעסיקים",
+      "partial_year": "עבודה בחלק מהשנה",
+      "donation": "תרומות",
+      "life_insurance": "ביטוח חיים פרטי",
+      "pension_self": "הפקדה עצמאית לפנסיה"
+    },
+    "editAnswers": "עריכת התשובות",
+    "toEstimate": "להערכה הראשונית",
+    "period": "{from} עד {to}"
+  },
+  "documents": {
+    "title": "המסמכים שלי",
+    "intro": "כאן מעלים את המסמכים לכל שנת מס. הקבצים נשמרים מוצפנים, ורק את/ה רואה אותם.",
+    "checklistTitle": "מה צריך",
+    "checklistIntro": "טופס 106 צריך לכל שנה שבה עבדת, מכל מעסיק. שאר המסמכים לפי ההטבות שמצאנו.",
+    "year": "שנת {year}",
+    "upload": "העלאה",
+    "view": "צפייה",
+    "uploadedTitle": "מה שהעלית",
+    "noDocuments": "עדיין לא העלית מסמכים.",
+    "types": {
+      "form_106": "טופס 106",
+      "form_867": "טופס 867",
+      "donation_receipt": "קבלה על תרומה",
+      "insurance": "אישור ביטוח חיים",
+      "pension": "אישור הפקדה לפנסיה",
+      "other": "מסמך אחר"
+    },
+    "status": {
+      "missing": "חסר",
+      "uploaded": "הועלה, מחכה לאישור שלך",
+      "confirmed": "אושר",
+      "extracting": "קוראים את המסמך…",
+      "needs_review": "מחכה לבדיקה שלך",
+      "failed": "הקריאה נכשלה"
+    },
+    "uploadPage": {
+      "title": "העלאת מסמך",
+      "typeLabel": "סוג המסמך",
+      "yearLabel": "שנת המס",
+      "yearAuto": "נזהה מהטופס",
+      "chooseFile": "צילום או בחירת קובץ",
+      "chooseHint": "אפשר לצלם את הטופס או לבחור תמונה או PDF. מניחים את הטופס על משטח שטוח ומצלמים מלמעלה, באור טוב.",
+      "previewAlt": "תצוגה מקדימה של המסמך",
+      "pdfSelected": "נבחר קובץ PDF: {name}",
+      "warnings": {
+        "dark": "התמונה נראית חשוכה. כדאי לצלם שוב באור טוב יותר.",
+        "small": "הרזולוציה נמוכה, ייתכן שלא נצליח לקרוא את הטופס.",
+        "tooLarge": "הקובץ גדול מדי (עד 10MB)."
+      },
+      "retake": "צילום מחדש",
+      "send": "שליחה",
+      "sending": "שולחים…",
+      "errors": {
+        "unsupported_file": "סוג הקובץ לא נתמך. אפשר להעלות תמונה (JPG, PNG) או PDF.",
+        "too_large": "הקובץ גדול מדי (עד 10MB).",
+        "bad_year": "השנה לא בטווח השנים שאפשר לבקש עליהן החזר.",
+        "generic": "ההעלאה נכשלה. נסו שוב."
+      }
+    },
+    "review": {
+      "title": "בדיקת המסמך",
+      "extracting": "קוראים את המסמך. זה לוקח כמה שניות…",
+      "failed": "לא הצלחנו לקרוא את המסמך.",
+      "retry": "לנסות שוב",
+      "intro": "בדקו כל שדה מול הטופס. אפשר לתקן. שדות מסומנים צריכים בדיקה שלך לפני האישור.",
+      "manualIntro": "לא זיהינו את הערכים אוטומטית. הקלידו אותם מהטופס.",
+      "needsAttention": "בדקו את השדה הזה",
+      "checked": "בדקתי, הערך נכון",
+      "confirm": "אישור הערכים",
+      "confirmed": "הערכים אושרו. תודה!",
+      "edit": "עריכה",
+      "delete": "מחיקת המסמך",
+      "deleteConfirm": "למחוק את המסמך? אי אפשר לבטל.",
+      "openFile": "פתיחת הקובץ",
+      "backToDocuments": "חזרה למסמכים",
+      "errors": {
+        "invalid_field": "ערך לא תקין בשדה: {field}",
+        "not_ready": "המסמך עוד לא מוכן לאישור.",
+        "generic": "השמירה נכשלה. נסו שוב."
+      },
+      "fields": {
+        "tax_year": "שנת המס",
+        "employer_name": "שם המעסיק",
+        "employer_file_number": "מספר תיק ניכויים של המעסיק",
+        "months_worked": "חודשי עבודה בשנה",
+        "gross_taxable_income": "סך ההכנסה החייבת במס (₪)",
+        "tax_withheld": "מס הכנסה שנוכה (₪)",
+        "credit_points": "נקודות זיכוי שהמעסיק חישב",
+        "pension_employee_deposit": "הפרשות עובד לפנסיה (₪)"
+      }
+    }
+  }
+}

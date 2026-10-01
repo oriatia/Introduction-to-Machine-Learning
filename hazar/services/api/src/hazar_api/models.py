@@ -1,0 +1,224 @@
+from __future__ import annotations
+
+import enum
+import uuid
+from datetime import date, datetime
+from typing import Any
+
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Identity,
+    Index,
+    LargeBinary,
+    String,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+Base.metadata.naming_convention = NAMING_CONVENTION
+
+
+class Role(enum.StrEnum):
+    USER = "user"
+    ADVISOR = "advisor"
+    ADMIN = "admin"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # E.164 (+9725XXXXXXXX). PII: never log it; mask with hazar_api.privacy.mask_phone.
+    phone: Mapped[str] = mapped_column(String(16), unique=True, nullable=False)
+    role: Mapped[Role] = mapped_column(
+        Enum(Role, name="user_role", values_callable=lambda e: [m.value for m in e]),
+        nullable=False,
+        default=Role.USER,
+        server_default=Role.USER.value,
+    )
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class AuditLog(Base):
+    """Append-only record of security-relevant actions. `details` must never contain PII."""
+
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    action: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    target: Mapped[str | None] = mapped_column(String(128))
+    details: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict, server_default="{}")
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+
+
+class UserKey(Base):
+    """Per-user data-encryption key (DEK), stored only wrapped by the master key (KEK)."""
+
+    __tablename__ = "user_keys"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    wrapped_dek: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    key_wrapper_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class Profile(Base):
+    """Personal status. Questionnaire-sourced fields are re-derived from QuestionnaireAnswer (ADR 0003)."""
+
+    __tablename__ = "profiles"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    resident: Mapped[bool | None] = mapped_column(Boolean)
+    sex: Mapped[str | None] = mapped_column(String(16))
+    marital_status: Mapped[str | None] = mapped_column(String(16))
+    single_parent: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    disability: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class LifeEventType(enum.StrEnum):
+    CHILD_BIRTH = "child_birth"
+    DEGREE_COMPLETED = "degree_completed"
+    DISCHARGE = "discharge"
+    ALIYAH = "aliyah"
+    LOCALITY = "locality"
+    MULTIPLE_EMPLOYERS = "multiple_employers"
+    PARTIAL_YEAR = "partial_year"
+    DONATION = "donation"
+    LIFE_INSURANCE = "life_insurance"
+    PENSION_SELF = "pension_self"
+
+
+class LifeEventSource(enum.StrEnum):
+    QUESTIONNAIRE = "questionnaire"
+    DOCUMENT = "document"
+    ADVISOR = "advisor"
+
+
+class LifeEvent(Base):
+    """A dated fact about the user's life. Tax-year facts are derived from these."""
+
+    __tablename__ = "life_events"
+    __table_args__ = (Index("ix_life_events_user_source", "user_id", "source"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
+    date_from: Mapped[date] = mapped_column(Date, nullable=False)
+    date_to: Mapped[date | None] = mapped_column(Date)
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict, server_default="{}")
+    source: Mapped[str] = mapped_column(String(16), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class QuestionnaireAnswer(Base):
+    __tablename__ = "questionnaire_answers"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    question_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[Any] = mapped_column(JSONB, nullable=False)
+    answered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class DocumentStatus(enum.StrEnum):
+    UPLOADED = "uploaded"
+    EXTRACTING = "extracting"
+    NEEDS_REVIEW = "needs_review"
+    CONFIRMED = "confirmed"
+    FAILED = "failed"
+
+
+class Document(Base):
+    """An uploaded file. The bytes live encrypted in object storage (DocumentVault); this row is metadata."""
+
+    __tablename__ = "documents"
+    __table_args__ = (Index("ix_documents_user_created", "user_id", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
+    tax_year: Mapped[int | None] = mapped_column()
+    object_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default=DocumentStatus.UPLOADED.value)
+    extractor: Mapped[str | None] = mapped_column(String(32))
+    # {"fields": {name: {"value": str|None, "confidence": float}}} — model output, never used unconfirmed.
+    extraction: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # User-confirmed values, the only ones used downstream.
+    confirmed: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class IncomeSource(Base):
+    """One employer in one tax year, from a confirmed Form 106. Input for the tax engine."""
+
+    __tablename__ = "income_sources"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    tax_year: Mapped[int] = mapped_column(nullable=False)
+    employer_name: Mapped[str | None] = mapped_column(String(120))
+    employer_file_number: Mapped[str | None] = mapped_column(String(20))
+    # Confirmed Form 106 values (integers in agorot-free shekels as printed), keyed by semantic field name.
+    values: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
