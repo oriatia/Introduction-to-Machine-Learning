@@ -28,6 +28,13 @@ The SMS provider is a mock: nothing is sent. The code is visible in either place
 
 `/api/dev/*` exists only when `HAZAR_ENV` is development/test **and** the SMS provider is the mock.
 
+### Documents and extraction
+Uploads are encrypted per user and extracted by the worker. Locally the extractor is the **mock**: a real photo
+comes back with empty fields (type the values on the review screen); `apps/web/e2e/fixtures/form106-mock.png`
+carries sample values so you can see a full extraction. To try Claude vision instead (ADR 0004 §4, needs the
+product owner's privacy decision first): set `HAZAR_EXTRACTION_PROVIDER=claude`, `HAZAR_ALLOW_IMAGES_TO_LLM=true`
+and `ANTHROPIC_API_KEY` on the `api` and `worker` services.
+
 ### Behind a TLS-intercepting proxy
 If image builds fail with certificate errors, pass your proxy's CA bundle as a build secret
 (it is never stored in an image): `HAZAR_EXTRA_CA_FILE=/path/to/ca.pem docker compose build`.

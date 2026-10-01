@@ -80,6 +80,13 @@ export default async function EstimatePage() {
         ))}
       </ul>
 
+      <Link
+        href="/documents"
+        className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-control)] bg-brand-700 px-6 text-lg font-semibold text-white hover:bg-brand-800"
+      >
+        {t("toDocuments")}
+      </Link>
+
       <div className="flex flex-col items-center gap-3">
         <Link href="/timeline" className="font-semibold text-brand-700 underline underline-offset-4">
           {t("toTimeline")}

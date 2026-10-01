@@ -128,6 +128,8 @@ retention job deletes raw documents after the configured period; no PII in logs.
    20 test cases. Done = 20 cases pass.
 4. Documents — vault, smart camera upload, Form 106 extraction with confidence, field confirmation screen,
    personal checklist. Done = a photographed 106 is extracted and confirmed.
+   (ADR 0004: extraction runs in the worker behind an Extractor interface; mock by default. Claude vision on raw
+   images waits for the product owner's privacy decision, ADR 0004 §4.)
 5. Tax engine v2 — 6 years, multiple employers, localities, donations, insurance; refund report with
    per-year cards and "למה?". Done = 100 cases pass.
 6. Submission — power of attorney + e-signature (provider behind an interface, mock locally),

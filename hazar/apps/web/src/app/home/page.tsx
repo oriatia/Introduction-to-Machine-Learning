@@ -34,6 +34,9 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       >
         {cta.label}
       </Link>
+      <Link href="/documents" className="text-center font-semibold text-brand-700 underline underline-offset-4">
+        {t("viewDocuments")}
+      </Link>
       {q?.complete && (
         <Link href="/timeline" className="text-center font-semibold text-brand-700 underline underline-offset-4">
           {t("viewTimeline")}
