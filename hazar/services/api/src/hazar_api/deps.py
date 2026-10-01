@@ -13,7 +13,10 @@ from hazar_api.models import Role, User
 from hazar_api.otp import OtpService
 from hazar_api.sessions import SessionStore
 
-DbSession = Annotated[AsyncSession, Depends(get_db)]
+# scope="function": commit/rollback runs BEFORE the response is sent. With the default ("request") scope the
+# commit happened after the client already had the response, so a fast follow-up request could read stale
+# data (seen in CI as StaleDataError on undo → answer).
+DbSession = Annotated[AsyncSession, Depends(get_db, scope="function")]
 
 
 def get_settings_dep(request: Request) -> Settings:

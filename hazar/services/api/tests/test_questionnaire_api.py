@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, get_args
 
 import httpx
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from hazar_api.models import AuditLog, LifeEvent, Profile
+from hazar_api.deps import DbSession
+from hazar_api.models import AuditLog, LifeEvent, Profile, QuestionnaireAnswer
 
 from .conftest import ALL_NO, login
 
@@ -126,3 +127,28 @@ async def test_window_question_lists_window_years(client: httpx.AsyncClient) -> 
     assert nxt["id"] == "donation_years"
     assert nxt["kind"] == "window_years"
     assert nxt["window"] == [2020, 2021, 2022, 2023, 2024, 2025]
+
+
+async def test_writes_are_committed_before_the_response(
+    client: httpx.AsyncClient, sessionmaker: async_sessionmaker[AsyncSession]
+) -> None:
+    """Regression: the commit ran after the response, so a fast follow-up request (undo → answer) could read
+    pre-commit data and fail with StaleDataError. The client must be able to rely on read-your-writes.
+    (The in-process test transport waits for the app either way; the scope check below pins the fix.)"""
+    assert get_args(DbSession)[1].scope == "function"
+    await login(client)
+    await answer(client, "resident", True)
+    # A brand-new session, opened right after the response, must already see the answer.
+    async with sessionmaker() as s:
+        assert await s.scalar(
+            select(QuestionnaireAnswer.value).where(QuestionnaireAnswer.question_id == "resident")
+        )
+    await client.post("/api/questionnaire/undo", json={})
+    async with sessionmaker() as s:
+        assert (
+            await s.scalar(select(QuestionnaireAnswer).where(QuestionnaireAnswer.question_id == "resident"))
+            is None
+        )
+    # The exact failing sequence from CI: undo, then immediately answer the same question again.
+    r = await answer(client, "resident", False)
+    assert r.status_code == 200
