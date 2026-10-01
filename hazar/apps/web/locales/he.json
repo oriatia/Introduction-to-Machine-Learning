@@ -48,10 +48,12 @@
     "welcomeNew": "נרשמת בהצלחה. ברוך הבא ל-Hazar!",
     "welcomeBack": "שמחים לראות אותך שוב.",
     "signedInAs": "מחובר עם המספר {phone}",
-    "nextStepTitle": "מה הלאה?",
-    "nextStepBody": "בקרוב כאן: שאלון קצר שיבדוק אילו הטבות מס אולי פספסת.",
     "logout": "יציאה",
-    "advisorLink": "למשרד היועץ"
+    "advisorLink": "למשרד היועץ",
+    "startQuestionnaire": "מתחילים את השאלון",
+    "continueQuestionnaire": "ממשיכים את השאלון",
+    "viewEstimate": "להערכה הראשונית",
+    "viewTimeline": "ציר הזמן שלי"
   },
   "advisor": {
     "title": "משרד היועץ",
@@ -86,5 +88,129 @@
     "fieldLabel": "שדה לדוגמה",
     "fieldHint": "טקסט עזרה",
     "fieldError": "הודעת שגיאה לדוגמה"
+  },
+  "flow": {
+    "label": "שלבי התהליך",
+    "questionnaire": "שאלון",
+    "estimate": "הערכה ראשונית",
+    "documents": "מסמכים",
+    "sign": "חתימה"
+  },
+  "questionnaire": {
+    "title": "שאלון קצר",
+    "intro": "אשאל כמה שאלות קצרות על השנים האחרונות. אפשר לחזור אחורה בכל שלב.",
+    "botLabel": "Hazar",
+    "userLabel": "את/ה",
+    "progress": "ענית על {answered} שאלות",
+    "yes": "כן",
+    "no": "לא",
+    "submit": "אישור",
+    "addAnother": "הוספת שורה",
+    "remove": "הסרה",
+    "undo": "חזרה לשאלה הקודמת",
+    "doneTitle": "סיימנו! תודה.",
+    "doneBody": "עכשיו אפשר לראות אילו הטבות אולי מגיעות לך.",
+    "toEstimate": "להערכה הראשונית",
+    "toTimeline": "לציר הזמן שלי",
+    "untilToday": "היום",
+    "localityName": "שם היישוב",
+    "fromYear": "משנה",
+    "toYear": "עד שנה (ריק = עד היום)",
+    "dateLabel": "תאריך",
+    "yearLabel": "שנה",
+    "errors": {
+      "invalid_answer": "התשובה לא תקינה. בדקו את הפרטים ונסו שוב.",
+      "unknown_question": "השאלה כבר לא רלוונטית. מרעננים…",
+      "generic": "משהו השתבש. נסו שוב בעוד רגע."
+    },
+    "questions": {
+      "resident": "היית תושב/ת ישראל בשש השנים האחרונות?",
+      "sex": "מה המגדר שלך לצורכי מס?",
+      "marital_status": "מה המצב המשפחתי שלך היום?",
+      "has_children": "יש לך ילדים?",
+      "children_birth_dates": "מה תאריכי הלידה של הילדים?",
+      "single_parent": "גידלת את הילדים כהורה יחיד?",
+      "has_degree": "סיימת תואר אקדמי?",
+      "degree_years": "באיזו שנה סיימת כל תואר?",
+      "discharged": "סיימת שירות צבאי סדיר או שירות לאומי?",
+      "discharge_date": "מה תאריך השחרור?",
+      "aliyah": "עלית לארץ או חזרת אחרי תקופה ארוכה בחו״ל?",
+      "aliyah_date": "מתי עלית או חזרת?",
+      "disability": "יש לך או לבן משפחה קרוב נכות מוכרת?",
+      "multiple_employers": "היו שנים שבהן עבדת אצל יותר ממעסיק אחד במקביל?",
+      "multiple_employer_years": "באילו שנים?",
+      "partial_year": "היו שנים שבהן לא עבדת את כל השנה?",
+      "partial_years": "באילו שנים?",
+      "donations": "תרמת למוסדות או לעמותות?",
+      "donation_years": "באילו שנים?",
+      "life_insurance": "שילמת באופן פרטי על ביטוח חיים?",
+      "life_insurance_years": "באילו שנים?",
+      "pension_self": "הפקדת לפנסיה באופן עצמאי, לא דרך המעסיק?",
+      "pension_self_years": "באילו שנים?",
+      "localities": "באילו יישובים גרת בשש השנים האחרונות?"
+    },
+    "options": {
+      "sex": {
+        "female": "אישה",
+        "male": "גבר"
+      },
+      "marital_status": {
+        "single": "רווק/ה",
+        "married": "נשוי/אה",
+        "divorced": "גרוש/ה",
+        "widowed": "אלמן/ה",
+        "separated": "פרוד/ה"
+      }
+    },
+    "period": "{from} עד {to}",
+    "localityAnswer": "{name} ({period})"
+  },
+  "estimate": {
+    "title": "הערכה ראשונית",
+    "headline": "ייתכן שמגיע לך החזר מס",
+    "summary": "מצאנו {count, plural, one {הטבה אחת} other {# הטבות}} שכדאי לבדוק בשנות המס {years}.",
+    "noAmounts": "עדיין אין כאן סכומים. נחשב אותם רק אחרי שנקבל את המסמכים, לפי לוחות המס הרשמיים, ויועץ מס יבדוק.",
+    "emptyTitle": "לא מצאנו כרגע הטבות לבדיקה",
+    "emptyBody": "זה לא אומר שלא מגיע לך החזר. אחרי העלאת טופס 106 נבדוק שוב, כולל מס שנוכה ביתר.",
+    "years": "שנים: {years}",
+    "why": "למה?",
+    "legalRefPending": "ההפניה לסעיף בפקודת מס הכנסה תתווסף אחרי בדיקה של יועץ המס.",
+    "documentsNeeded": "מסמכים שנצטרך",
+    "documents": {
+      "form_106": "טופס 106 מכל מעסיק",
+      "form_867": "טופס 867 מהבנק",
+      "donation_receipt": "קבלות על תרומות",
+      "insurance": "אישור שנתי מחברת הביטוח",
+      "pension": "אישור שנתי מקופת הפנסיה",
+      "other": "מסמך תומך (למשל תעודה או אישור)"
+    },
+    "editAnswers": "עריכת התשובות",
+    "toTimeline": "ציר הזמן שלי"
+  },
+  "timeline": {
+    "title": "ציר הזמן שלי",
+    "intro": "אלה הפרטים שאספנו מהתשובות שלך. מהם נגזרות שנות המס.",
+    "empty": "עדיין אין אירועים. מלאו את השאלון כדי לבנות את ציר הזמן.",
+    "profileTitle": "פרטים אישיים",
+    "resident": "תושבות ישראל",
+    "residentYes": "תושב/ת ישראל",
+    "residentNo": "לא תושב/ת ישראל",
+    "eventsTitle": "אירועים",
+    "untilToday": "היום",
+    "types": {
+      "child_birth": "לידת ילד/ה",
+      "degree_completed": "סיום תואר",
+      "discharge": "שחרור משירות",
+      "aliyah": "עלייה / חזרה לארץ",
+      "locality": "מגורים ב{name}",
+      "multiple_employers": "כמה מעסיקים",
+      "partial_year": "עבודה בחלק מהשנה",
+      "donation": "תרומות",
+      "life_insurance": "ביטוח חיים פרטי",
+      "pension_self": "הפקדה עצמאית לפנסיה"
+    },
+    "editAnswers": "עריכת התשובות",
+    "toEstimate": "להערכה הראשונית",
+    "period": "{from} עד {to}"
   }
 }

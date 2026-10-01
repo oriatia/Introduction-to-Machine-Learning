@@ -21,3 +21,16 @@ export async function postJson<T>(path: string, body: unknown): Promise<ApiResul
   const retryAfter = typeof data?.retry_after === "number" ? data.retry_after : undefined;
   return { ok: false, status: res.status, error, retryAfter };
 }
+
+/** Browser-side JSON GET from our own origin. */
+export async function getJson<T>(path: string): Promise<ApiResult<T>> {
+  let res: Response;
+  try {
+    res = await fetch(path, { credentials: "same-origin", cache: "no-store" });
+  } catch {
+    return { ok: false, status: 0, error: "generic" };
+  }
+  const data = await res.json().catch(() => null);
+  if (res.ok) return { ok: true, status: res.status, data: data as T };
+  return { ok: false, status: res.status, error: typeof data?.error === "string" ? data.error : "generic" };
+}

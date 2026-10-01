@@ -122,6 +122,8 @@ retention job deletes raw documents after the configured period; no PII in logs.
 2. Questionnaire + life timeline — LifeEvent model, chat_agent, rule registry driving questions,
    rough estimate screen ("ייתכן שמגיע לך בין X ל-Y").
    Done = an estimate appears after the questionnaire.
+   (ADR 0003: until verified tables exist the estimate lists possible benefits per year, without amounts;
+   the questionnaire is structured; chat_agent moves to Sprint 7.)
 3. Tax engine v1 — brackets + basic credit points for one year, tables with placeholders,
    20 test cases. Done = 20 cases pass.
 4. Documents — vault, smart camera upload, Form 106 extraction with confidence, field confirmation screen,
